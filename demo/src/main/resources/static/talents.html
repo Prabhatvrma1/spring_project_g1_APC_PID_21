@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Talent Pipeline - All Talents</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            /* Light theme */
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8fafc;
+            --bg-tertiary: #f1f5f9;
+            --text-primary: #1a202c;
+            --text-secondary: #4a5568;
+            --text-tertiary: #718096;
+            --border-primary: #e2e8f0;
+            --border-secondary: #cbd5e0;
+            --accent: #3b82f6;
+            --accent-hover: #2563eb;
+            --success: #10b981;
+            --error: #ef4444;
+            --shadow: rgba(0, 0, 0, 0.1);
+            --shadow-lg: rgba(0, 0, 0, 0.15);
+        }
+        
+        [data-theme="dark"] {
+            /* Dark theme */
+            --bg-primary: #1a1a1a;
+            --bg-secondary: #0f0f0f;
+            --bg-tertiary: #262626;
+            --text-primary: #ffffff;
+            --text-secondary: #d4d4d4;
+            --text-tertiary: #a3a3a3;
+            --border-primary: #404040;
+            --border-secondary: #525252;
+            --accent: #3b82f6;
+            --accent-hover: #60a5fa;
+            --success: #22c55e;
+            --error: #f87171;
+            --shadow: rgba(0, 0, 0, 0.3);
+            --shadow-lg: rgba(0, 0, 0, 0.5);
+        }
+        
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif; 
+            background: var(--bg-secondary); 
+            color: var(--text-primary);
+            min-height: 100vh; 
+            transition: background-color 0.3s ease, color 0.3s ease;
+            position: relative;
+        }
+        
+        body::before {
+            content: '';
+            position: fixed;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at 20% 80%, var(--accent) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 20%, var(--accent) 0%, transparent 50%);
+            opacity: 0.02;
+            animation: float 30s ease-in-out infinite;
+            pointer-events: none;
+            z-index: -1;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            33% { transform: translate(20px, -20px) rotate(120deg); }
+            66% { transform: translate(-15px, 15px) rotate(240deg); }
+        }
+        .theme-toggle {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            background: var(--bg-primary);
+            border: 2px solid var(--border-primary);
+            border-radius: 50px;
+            padding: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 1000;
+            box-shadow: 0 4px 12px var(--shadow);
+        }
+        
+        .theme-toggle:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px var(--shadow-lg);
+        }
+        
+        .theme-toggle-inner {
+            display: flex;
+            align-items: center;
+            position: relative;
+            width: 60px;
+            height: 30px;
+            border-radius: 25px;
+            background: var(--bg-tertiary);
+            transition: all 0.3s ease;
+        }
+        
+        .theme-toggle-circle {
+            position: absolute;
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            background: var(--accent);
+            left: 2px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        [data-theme="dark"] .theme-toggle-circle {
+            left: 32px;
+        }
+        
+        .navbar { 
+            background: var(--bg-primary); 
+            backdrop-filter: blur(20px); 
+            color: var(--text-primary); 
+            padding: 16px 90px 16px 24px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            border-bottom: 1px solid var(--border-primary);
+            box-shadow: 0 4px 12px var(--shadow);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            animation: slideDown 0.6s ease-out;
+        }
+        
+        @keyframes slideDown {
+            from { transform: translateY(-100%); }
+            to { transform: translateY(0); }
+        }
+        
+        .nav-left { font-weight: 700; letter-spacing: 0.4px; font-size: 18px; color: var(--text-primary); }
+        .nav-right a { 
+            color: var(--text-secondary); 
+            text-decoration: none; 
+            margin-left: 20px; 
+            font-weight: 500; 
+            padding: 8px 16px; 
+            border-radius: 8px; 
+            transition: all 0.2s ease; 
+            position: relative;
+        }
+        .nav-right a:hover { 
+            color: var(--text-primary);
+            background: var(--bg-tertiary);
+            transform: translateY(-1px); 
+        }
+        .nav-right a.logout {
+            color: var(--error);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+        .nav-right a.logout:hover {
+            background: rgba(239, 68, 68, 0.1);
+        }
+
+        .container { 
+            max-width: 1200px; 
+            margin: 24px auto; 
+            background: var(--bg-primary); 
+            border: 1px solid var(--border-primary);
+            border-radius: 20px; 
+            box-shadow: 0 8px 32px var(--shadow); 
+            overflow: hidden;
+            animation: slideUp 0.8s ease-out;
+        }
+        
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .header { 
+            background: linear-gradient(135deg, var(--accent), var(--accent-hover)); 
+            color: white; 
+            padding: 32px; 
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+            animation: shimmer 3s ease-in-out infinite;
+        }
+        
+        @keyframes shimmer {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+        
+        .header h1 { font-size: 2.2rem; margin-bottom: 8px; font-weight: 700; }
+        .header p { opacity: 0.9; font-size: 1.1rem; }
+
+        .content { padding: 32px; background: var(--bg-primary); }
+
+        .actions { display: flex; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }
+        .btn { 
+            background: linear-gradient(135deg, var(--accent), var(--accent-hover)); 
+            color: white; 
+            border: none; 
+            padding: 12px 20px; 
+            border-radius: 10px; 
+            cursor: pointer; 
+            font-weight: 600; 
+            transition: all 0.3s ease; 
+            text-decoration: none; 
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+        
+        .btn:hover { 
+            transform: translateY(-2px); 
+            box-shadow: 0 8px 25px rgba(59, 130, 246, 0.3);
+        }
+        
+        .btn:hover::before {
+            left: 100%;
+        }
+        
+        .btn-outline { 
+            background: transparent; 
+            color: var(--accent); 
+            border: 2px solid var(--accent); 
+        }
+        
+        .btn-outline:hover {
+            background: var(--accent);
+            color: white;
+        }
+
+        .talents-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); 
+            gap: 20px; 
+        }
+        
+        .talent-card { 
+            background: var(--bg-primary); 
+            border: 1px solid var(--border-primary); 
+            border-radius: 16px; 
+            padding: 24px; 
+            transition: all 0.3s ease; 
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .talent-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent), var(--accent-hover));
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+        
+        .talent-card:hover::before {
+            transform: scaleX(1);
+        }
+        
+        .talent-card:hover { 
+            transform: translateY(-8px); 
+            box-shadow: 0 12px 40px var(--shadow-lg);
+            border-color: var(--border-secondary);
+        }
+        
+        .talent-card h3 { 
+            color: var(--text-primary); 
+            margin-bottom: 12px; 
+            font-size: 1.3rem; 
+            font-weight: 600;
+        }
+        
+        .talent-card p { 
+            color: var(--text-secondary); 
+            margin-bottom: 8px; 
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .talent-card .email { 
+            color: var(--accent); 
+            font-weight: 500; 
+        }
+        
+        .talent-card .skills { 
+            background: var(--bg-tertiary); 
+            padding: 12px 16px; 
+            border-radius: 8px; 
+            font-size: 0.9rem; 
+            color: var(--text-secondary);
+            margin-top: 12px;
+        }
+        
+        .card-actions { 
+            margin-top: 20px; 
+            display: flex; 
+            gap: 10px; 
+        }
+        
+        .btn-sm {
+            padding: 8px 16px;
+            font-size: 14px;
+        }
+        
+        .btn-danger { 
+            background: linear-gradient(135deg, var(--error), #dc2626);
+        }
+        
+        .btn-danger:hover {
+            box-shadow: 0 8px 25px rgba(239, 68, 68, 0.3);
+        }
+
+        .status { 
+            padding: 14px 16px; 
+            border-radius: 10px; 
+            margin: 16px 0; 
+            font-weight: 500;
+            animation: slideDown 0.4s ease-out;
+        }
+        
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .status.error { 
+            background: rgba(239, 68, 68, 0.1); 
+            color: var(--error); 
+            border: 1px solid rgba(239, 68, 68, 0.2); 
+        }
+        
+        .loading { 
+            text-align: center; 
+            padding: 40px; 
+            color: var(--text-secondary);
+            font-size: 16px;
+        }
+        
+        .loading::before {
+            content: '';
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            border: 3px solid var(--border-primary);
+            border-radius: 50%;
+            border-top-color: var(--accent);
+            animation: spin 1s linear infinite;
+            margin-right: 12px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .empty-state { 
+            text-align: center; 
+            padding: 60px 40px; 
+            color: var(--text-secondary);
+        }
+        
+        .empty-state h3 { 
+            margin-bottom: 12px; 
+            color: var(--text-primary);
+            font-size: 1.5rem;
+        }
+        
+        .empty-state p {
+            font-size: 1.1rem;
+            opacity: 0.8;
+        }
+        
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .container {
+                margin: 16px;
+                border-radius: 16px;
+            }
+            
+            .content {
+                padding: 20px;
+            }
+            
+            .actions {
+                flex-direction: column;
+                gap: 8px;
+            }
+            
+            .talents-grid {
+                grid-template-columns: 1fr;
+                gap: 16px;
+            }
+            
+            .theme-toggle {
+                top: 70px;
+                right: 15px;
+                transform: scale(0.9);
+            }
+            
+            .navbar {
+                padding: 12px 60px 12px 16px;
+            }
+            
+            .nav-right a {
+                margin-left: 12px;
+                padding: 6px 12px;
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="theme-toggle" onclick="toggleTheme()">
+        <div class="theme-toggle-inner">
+            <div class="theme-toggle-circle">
+                <span id="themeIcon">☀️</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="navbar">
+        <div class="nav-left">💼 Talent Pipeline</div>
+        <div class="nav-right">
+            <a href="/talents.html">👥 All Talents</a>
+            <a href="/add-talent.html">➕ Add Talent</a>
+            <a href="#" class="logout" onclick="logout()">🚪 Logout</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="header">
+            <h1>👥 All Talents</h1>
+            <p>Browse, update, or remove talents</p>
+        </div>
+
+        <div class="content">
+            <div class="actions">
+                <a class="btn" href="/add-talent.html">➕ Add New Talent</a>
+                <button class="btn btn-outline" onclick="loadTalents()">🔄 Refresh List</button>
+            </div>
+
+            <div id="talentsContainer">
+                <div class="loading">Loading talents...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Theme management
+        function initializeTheme() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            updateThemeIcon(savedTheme);
+        }
+
+        function toggleTheme() {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            updateThemeIcon(newTheme);
+            
+            document.body.style.transition = 'background-color 0.3s ease';
+        }
+
+        function updateThemeIcon(theme) {
+            const icon = document.getElementById('themeIcon');
+            icon.textContent = theme === 'dark' ? '🌙' : '☀️';
+        }
+
+        const API_BASE_URL = '/api/talents';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeTheme();
+            loadTalents();
+        });
+
+        async function loadTalents() {
+            const container = document.getElementById('talentsContainer');
+            container.innerHTML = '<div class="loading">Loading talents...</div>';
+
+            try {
+                const response = await fetch(API_BASE_URL);
+                const talents = await response.json();
+
+                if (!Array.isArray(talents) || talents.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <h3>No talents found</h3>
+                            <p>Click "Add Talent" to create your first entry.</p>
+                        </div>
+                    `;
+                } else {
+                    container.innerHTML = `
+                        <div class="talents-grid">
+                            ${talents.map(createTalentCard).join('')}
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                container.innerHTML = `
+                    <div class="status error">Error loading talents: ${error.message}</div>
+                `;
+            }
+        }
+
+        function createTalentCard(talent) {
+            return `
+                <div class="talent-card">
+                    <h3>${escapeHtml(talent.name || 'Unnamed Talent')}</h3>
+                    <p class="email">📧 ${escapeHtml(talent.email || 'No email provided')}</p>
+                    <div class="skills">💼 Skills: ${escapeHtml(talent.skills || 'No skills listed')}</div>
+                    <div class="card-actions">
+                        <button class="btn btn-sm" onclick="editTalent(${talent.id})">✏️ Edit</button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteTalent(${talent.id})">🗑️ Delete</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        async function deleteTalent(id) {
+            if (!confirm('Are you sure you want to delete this talent?')) return;
+            try {
+                const res = await fetch(`${API_BASE_URL}/${id}`, { method: 'DELETE' });
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+                loadTalents();
+            } catch (err) {
+                alert('Error deleting talent: ' + err.message);
+            }
+        }
+
+        async function editTalent(id) {
+            const newName = prompt('Enter new name:');
+            if (!newName) return;
+            const newEmail = prompt('Enter new email:');
+            if (!newEmail) return;
+            const newSkills = prompt('Enter new skills (comma-separated):');
+            if (!newSkills) return;
+            try {
+                const res = await fetch(`${API_BASE_URL}/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name: newName, email: newEmail, skills: newSkills })
+                });
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+                loadTalents();
+            } catch (err) {
+                alert('Error updating talent: ' + err.message);
+            }
+        }
+
+        function escapeHtml(str) {
+            return String(str).replace(/[&<>"]+/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[s]));
+        }
+        
+        async function logout() {
+            try {
+                const response = await fetch('/api/auth/logout', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    window.location.href = '/login';
+                } else {
+                    alert('Logout failed: ' + data.message);
+                }
+            } catch (error) {
+                console.error('Logout error:', error);
+                window.location.href = '/login';
+            }
+        }
+    </script>
+</body>
+</html>
